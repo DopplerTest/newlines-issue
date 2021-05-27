@@ -1,0 +1,26 @@
+name: Test SSH key from Doppler
+on: [workflow_dispatch]
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch master
+        uses: actions/checkout@master
+
+      - name: Doppler - Install CLI
+        uses: dopplerhq/cli-action@v1
+      
+      - name: Test ssh connect with key
+        env:
+            DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: |
+          doppler --version
+          sudo apt-get install dos2unix -y -q
+          doppler secrets get SSH_KEY --plain > id_rsa
+          chmod 600 id_rsa
+          echo 'Validate SSH key'
+          ssh-keygen -y -e -f id_rsa || true
+          echo 'Validate SSH key after using dos2unix'          
+          dos2unix id_rsa
+          ssh-keygen -y -e -f id_rsa || true
